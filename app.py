@@ -5,69 +5,76 @@ import requests
 
 # 파일 경로 및 GIPHY 설정
 DATA_FILE = "sentences.txt"
-GIPHY_API_KEY = "kTRDpyAZYcdXvcVCN7ZnwNjZM9dvJuCT " 
+GIPHY_API_KEY = "여기에_발급받은_API_키를_넣으세요" 
 
 st.set_page_config(page_title="영어 시네마 쉐도잉", layout="centered")
 
-# --- CSS: 상단 공백 제거 및 UI 최적화 ---
+# --- CSS: 상단 공백 및 모든 여백 강제 제거 ---
 st.markdown("""
     <style>
-    /* 1. 전체 상단 여백 제거 */
-    .block-container { 
-        padding-top: 0rem !important; 
-        padding-bottom: 1rem !important; 
-        max-width: 500px; /* 모바일처럼 좁게 유지 */
+    /* 1. 최상위 루트 컨테이너 여백 제거 */
+    .main .block-container {
+        padding-top: 0px !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        padding-bottom: 0px !important;
     }
     
-    /* 2. 스트림릿 기본 헤더 제거 */
+    /* 2. 스트림릿 기본 헤더/푸터/메뉴 숨기기 및 높이 제거 */
     header { visibility: hidden; height: 0px !important; }
-    #MainMenu { visibility: hidden; }
+    [data-testid="stHeader"] { display: none !important; }
     footer { visibility: hidden; }
+    #MainMenu { visibility: hidden; }
     
-    .main { background-color: #ffffff; color: #000000; }
-    
+    /* 3. 앱 배경 설정 */
+    .main { 
+        background-color: #ffffff; 
+    }
+
+    /* 4. 학습 카드 스타일: 상단 밀착 */
     .study-card {
         background-color: #ffffff;
-        padding: 10px 20px; /* 상단 패딩 축소 */
+        padding: 5px 15px; 
         border-radius: 20px;
         text-align: center;
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         border: 1px solid #f0f0f0;
-        min-height: 90vh; /* 화면 높이에 맞게 조정 */
+        min-height: 95vh;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start; /* 위쪽부터 차곡차곡 */
+        justify-content: flex-start;
+        margin-top: 0px !important;
     }
-    
+
+    /* 5. 미디어(GIF) 영역: 상단 여백 최소화 */
     .media-container {
         width: 100%;
-        height: 230px;
+        height: 240px;
         border-radius: 15px;
         overflow: hidden;
         background-color: #f9f9f9;
-        margin-top: 10px;
-        margin-bottom: 15px;
+        margin-top: 5px; /* 위쪽 여백 최소화 */
+        margin-bottom: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
     .media-container img { width: 100%; height: 100%; object-fit: contain; }
     
-    .eng-text-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 10px; }
+    .eng-text-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 5px; }
     .char-normal { color: #000000; font-size: 1.6rem; font-weight: 500; }
     .char-accent { color: #E53935; font-size: 1.9rem; font-weight: 800; text-decoration: underline; }
     
     .sound-text { color: #666; font-size: 1.1rem; margin-bottom: 10px; font-style: italic; }
-    .mean-box { padding: 15px; background-color: #f8f9fa; border-radius: 15px; border: 1px solid #eee; margin-bottom: 15px; }
-    .mean-text { color: #222; font-size: 1.5rem; font-weight: bold; }
-    .status-info { font-size: 1.1rem; color: #E53935; font-weight: bold; margin-bottom: 15px; }
+    .mean-box { padding: 12px; background-color: #f8f9fa; border-radius: 15px; border: 1px solid #eee; margin-bottom: 10px; }
+    .mean-text { color: #222; font-size: 1.4rem; font-weight: bold; }
+    .status-info { font-size: 1.1rem; color: #E53935; font-weight: bold; margin-bottom: 10px; }
     
     .stButton>button { 
         width: 100%; height: 4.5rem; border-radius: 15px; font-weight: bold; font-size: 1.3rem !important;
         background-color: #E53935 !important; color: white !important; border: none;
-        margin-top: auto; /* 버튼을 아래쪽으로 밀어냄 */
+        margin-top: auto; 
     }
-    .hidden-content { display: none !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -104,11 +111,10 @@ def load_sentences():
 
 all_sentences = load_sentences()
 
-# 사이드바 설정
 with st.sidebar:
     st.header("⚙️ 앱 설정")
     study_mode = st.radio("학습 대상", ["1단계: 숙어", "2단계: 패턴"])
-    st.session_state.drive_mode = st.toggle("🚗 운전 모드", False)
+    st.session_state.drive_mode = st.toggle("🚗 운전 모드 (자동 넘김)", False)
     target_cat = "숙어" if "숙어" in study_mode else "패턴"
     filtered_data = [s for s in all_sentences if s[0] == target_cat]
 
@@ -120,6 +126,7 @@ if filtered_data:
     idx = st.session_state.current_idx
     _, eng, sound, mean = filtered_data[idx]
 
+    # 실제 카드 렌더링 시작
     st.markdown('<div class="study-card">', unsafe_allow_html=True)
     
     gif_url = get_giphy_url(eng)
@@ -134,7 +141,7 @@ if filtered_data:
         </div>
     """, unsafe_allow_html=True)
 
-    # 쉐도잉 로직 및 TTS 스크립트
+    # JavaScript 학습 로직
     is_drive = "true" if st.session_state.drive_mode else "false"
     clean_eng = eng.replace('"', '').replace("'", "")
     
