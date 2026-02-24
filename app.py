@@ -28,7 +28,7 @@ st.markdown("""
     
     .image-container {
         width: 100%;
-        height: 200px; /* 스마트폰 높이 고려 */
+        height: 200px;
         background-color: #f9f9f9;
         border-radius: 15px;
         margin-bottom: 15px;
@@ -51,7 +51,6 @@ st.markdown("""
     
     .status-info { margin-top: 15px; font-size: 1rem; color: #d32f2f; font-weight: bold; }
     
-    /* 스마트폰 버튼 크게 */
     .stButton>button { 
         width: 100%; height: 4.5rem; border-radius: 12px; font-weight: bold; font-size: 1.2rem !important;
         background-color: #333 !important; color: white !important; 
@@ -97,13 +96,11 @@ if filtered_data:
     idx = st.session_state.current_idx
     _, eng, sound, mean = filtered_data[idx]
     
-    # 이미지 표시 로직
     img_filename = eng.lower().replace(" ", "_").replace("'", "") + ".jpg"
     img_path = os.path.join(IMAGE_DIR, img_filename)
     
     st.markdown('<div class="study-card">', unsafe_allow_html=True)
     
-    # 🖼️ 이미지 영역
     if os.path.exists(img_path):
         st.image(img_path, use_container_width=True)
     else:
@@ -120,6 +117,7 @@ if filtered_data:
     is_drive = "true" if st.session_state.drive_mode else "false"
     clean_eng = eng.replace('"', '').replace("'", "")
     
+    # ★ JS 내부의 중괄호 {}를 {{}}로 수정하여 SyntaxError 해결
     st.components.v1.html(f"""
         <script>
         function start() {{
@@ -165,7 +163,7 @@ if filtered_data:
                                         btn.click();
                                         break;
                                     }}
-                                }
+                                }}
                             }}, 3000);
                         }}
                     }}
@@ -175,11 +173,10 @@ if filtered_data:
             speak();
         }}
         
-        // 버튼 클릭 감지
         window.parent.document.querySelectorAll('button').forEach(btn => {{
             if (btn.innerText.includes("다음")) {{
                 btn.onclick = () => {{ setTimeout(start, 500); }};
-            }
+            }}
         }});
         </script>
     """, height=0)
