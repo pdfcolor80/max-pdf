@@ -1,92 +1,89 @@
 import streamlit as st
 import os
 import random
-import requests
 
-# 파일 경로 및 GIPHY 설정
+# 파일 경로 설정
 DATA_FILE = "sentences.txt"
-GIPHY_API_KEY = "여기에_발급받은_API_키를_넣으세요" 
 
 st.set_page_config(page_title="영어 시네마 쉐도잉", layout="centered")
 
-# --- CSS: 상단 공백 및 모든 여백 강제 제거 ---
+# --- CSS: 상단 여백 완전 제거 및 UI 최적화 ---
 st.markdown("""
     <style>
-    /* 1. 최상위 루트 컨테이너 여백 제거 */
+    /* 1. 상단 여백 및 헤더 강제 제거 */
+    [data-testid="stAppViewContainer"] {
+        padding-top: 0px !important;
+    }
+    [data-testid="stHeader"] {
+        display: none !important;
+    }
     .main .block-container {
         padding-top: 0px !important;
-        padding-left: 10px !important;
-        padding-right: 10px !important;
-        padding-bottom: 0px !important;
+        margin-top: -60px !important; /* 상단 여백을 더 강력하게 끌어올림 */
     }
     
-    /* 2. 스트림릿 기본 헤더/푸터/메뉴 숨기기 및 높이 제거 */
-    header { visibility: hidden; height: 0px !important; }
-    [data-testid="stHeader"] { display: none !important; }
-    footer { visibility: hidden; }
-    #MainMenu { visibility: hidden; }
-    
-    /* 3. 앱 배경 설정 */
-    .main { 
-        background-color: #ffffff; 
-    }
+    .main { background-color: #ffffff; }
 
-    /* 4. 학습 카드 스타일: 상단 밀착 */
+    /* 2. 카드 디자인 */
     .study-card {
         background-color: #ffffff;
-        padding: 5px 15px; 
+        padding: 15px;
         border-radius: 20px;
         text-align: center;
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         border: 1px solid #f0f0f0;
-        min-height: 95vh;
+        min-height: 85vh;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        margin-top: 0px !important;
     }
 
-    /* 5. 미디어(GIF) 영역: 상단 여백 최소화 */
-    .media-container {
+    /* 3. 검색 영역 (GIPHY 검색 버튼 박스) */
+    .search-box {
         width: 100%;
-        height: 240px;
+        height: 160px;
         border-radius: 15px;
-        overflow: hidden;
-        background-color: #f9f9f9;
-        margin-top: 5px; /* 위쪽 여백 최소화 */
-        margin-bottom: 10px;
+        background-color: #f1f3f5;
+        border: 2px dashed #dee2e6;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        margin-top: 5px;
+        margin-bottom: 15px;
     }
-    .media-container img { width: 100%; height: 100%; object-fit: contain; }
     
+    .giphy-btn {
+        display: inline-block;
+        padding: 12px 25px;
+        background-color: #000000; /* GIPHY 블랙 */
+        color: #00ff99 !important; /* GIPHY 네온 그린 */
+        text-decoration: none !important;
+        border-radius: 10px;
+        font-weight: 900;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 10px rgba(0,255,153,0.2);
+        text-transform: uppercase;
+    }
+    
+    /* 텍스트 스타일: 블랙 & 레드 */
     .eng-text-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 5px; }
-    .char-normal { color: #000000; font-size: 1.6rem; font-weight: 500; }
-    .char-accent { color: #E53935; font-size: 1.9rem; font-weight: 800; text-decoration: underline; }
+    .char-normal { color: #000000; font-size: 1.8rem; font-weight: 500; }
+    .char-accent { color: #E53935; font-size: 2.1rem; font-weight: 800; text-decoration: underline; }
     
-    .sound-text { color: #666; font-size: 1.1rem; margin-bottom: 10px; font-style: italic; }
-    .mean-box { padding: 12px; background-color: #f8f9fa; border-radius: 15px; border: 1px solid #eee; margin-bottom: 10px; }
-    .mean-text { color: #222; font-size: 1.4rem; font-weight: bold; }
-    .status-info { font-size: 1.1rem; color: #E53935; font-weight: bold; margin-bottom: 10px; }
+    .sound-text { color: #666; font-size: 1.2rem; margin-bottom: 10px; font-style: italic; }
+    .mean-box { padding: 15px; background-color: #f8f9fa; border-radius: 15px; border: 1px solid #eee; margin-bottom: 15px; }
+    .mean-text { color: #222; font-size: 1.5rem; font-weight: bold; }
+    .status-info { font-size: 1.1rem; color: #E53935; font-weight: bold; margin-bottom: 15px; }
     
+    /* 하단 메인 버튼 */
     .stButton>button { 
         width: 100%; height: 4.5rem; border-radius: 15px; font-weight: bold; font-size: 1.3rem !important;
         background-color: #E53935 !important; color: white !important; border: none;
-        margin-top: auto; 
+        margin-top: auto;
     }
     </style>
     """, unsafe_allow_html=True)
-
-def get_giphy_url(keyword):
-    try:
-        url = f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API_KEY}&q={keyword}+movie&limit=1&rating=g"
-        response = requests.get(url, timeout=5).json()
-        if 'data' in response and len(response['data']) > 0:
-            return response['data'][0]['images']['original']['url']
-        return "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueXF3eHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpx/3o7TKunv7I79U/giphy.gif"
-    except:
-        return "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueXF3eHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpx/3o7TKunv7I79U/giphy.gif"
 
 def get_accented_html(text):
     words = text.split()
@@ -126,12 +123,19 @@ if filtered_data:
     idx = st.session_state.current_idx
     _, eng, sound, mean = filtered_data[idx]
 
-    # 실제 카드 렌더링 시작
     st.markdown('<div class="study-card">', unsafe_allow_html=True)
     
-    gif_url = get_giphy_url(eng)
-    st.markdown(f'<div class="media-container"><img src="{gif_url}"></div>', unsafe_allow_html=True)
+    # --- 상단 GIPHY 검색 영역 ---
+    # 검색어 뒤에 'movie'를 붙여서 상황에 맞는 움짤이 더 잘 나오게 설정
+    giphy_search_url = f"https://giphy.com/search/{eng.replace(' ', '-')}-movie"
+    st.markdown(f"""
+        <div class="search-box">
+            <p style="color:#444; margin-bottom:12px; font-weight:bold; font-size:0.9rem;">상황에 맞는 움짤을 찾아보세요</p>
+            <a href="{giphy_search_url}" target="_blank" class="giphy-btn">⚡ GIPHY 움짤 검색</a>
+        </div>
+    """, unsafe_allow_html=True)
 
+    # 텍스트 영역
     st.markdown(f"""
         <div>
             <div id="display-eng" class="eng-text-container">{get_accented_html(eng)}</div>
@@ -141,7 +145,7 @@ if filtered_data:
         </div>
     """, unsafe_allow_html=True)
 
-    # JavaScript 학습 로직
+    # JS 로직 (생략 없이 포함)
     is_drive = "true" if st.session_state.drive_mode else "false"
     clean_eng = eng.replace('"', '').replace("'", "")
     
@@ -164,13 +168,13 @@ if filtered_data:
                 else if (count < 10) {{ msg.rate = 0.9; statusEl.innerText = "Step 2: 정상 반복 (" + (count+1) + "/13)"; }}
                 else {{ 
                     msg.rate = 0.9; engEl.classList.add('hidden-content'); soundEl.classList.add('hidden-content'); 
-                    statusEl.innerText = "Step 3: 장면 연상 쉐도잉 (" + (count+1) + "/13)"; 
+                    statusEl.innerText = "Step 3: 장면 연상 (" + (count+1) + "/13)"; 
                 }}
                 msg.onend = function() {{
                     count++;
                     if (count < 13) {{ setTimeout(speak, 1500); }}
                     else {{
-                        statusEl.innerText = isDrive ? "🚗 다음 장면으로..." : "✅ 학습 완료!";
+                        statusEl.innerText = isDrive ? "🚗 자동 이동 중..." : "✅ 학습 완료";
                         if(isDrive) {{
                             setTimeout(() => {{
                                 const buttons = window.parent.document.querySelectorAll('button');
