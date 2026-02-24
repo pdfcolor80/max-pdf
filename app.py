@@ -5,33 +5,47 @@ import requests
 
 # 파일 경로 및 GIPHY 설정
 DATA_FILE = "sentences.txt"
-# 발급받은 'Beta Key'를 여기에 넣으세요!
-GIPHY_API_KEY = "kTRDpyAZYcdXvcVCN7ZnwNjZM9dvJuCT "
+GIPHY_API_KEY = "kTRDpyAZYcdXvcVCN7ZnwNjZM9dvJuCT " 
 
 st.set_page_config(page_title="영어 시네마 쉐도잉", layout="centered")
 
-# --- CSS: 블랙 & 레드 테마 UI ---
+# --- CSS: 상단 공백 제거 및 UI 최적화 ---
 st.markdown("""
     <style>
+    /* 1. 전체 상단 여백 제거 */
+    .block-container { 
+        padding-top: 0rem !important; 
+        padding-bottom: 1rem !important; 
+        max-width: 500px; /* 모바일처럼 좁게 유지 */
+    }
+    
+    /* 2. 스트림릿 기본 헤더 제거 */
+    header { visibility: hidden; height: 0px !important; }
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    
     .main { background-color: #ffffff; color: #000000; }
+    
     .study-card {
         background-color: #ffffff;
-        padding: 20px;
+        padding: 10px 20px; /* 상단 패딩 축소 */
         border-radius: 20px;
         text-align: center;
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         border: 1px solid #f0f0f0;
-        min-height: 80vh;
+        min-height: 90vh; /* 화면 높이에 맞게 조정 */
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: flex-start; /* 위쪽부터 차곡차곡 */
     }
+    
     .media-container {
         width: 100%;
-        height: 250px;
+        height: 230px;
         border-radius: 15px;
         overflow: hidden;
         background-color: #f9f9f9;
+        margin-top: 10px;
         margin-bottom: 15px;
         display: flex;
         align-items: center;
@@ -39,35 +53,32 @@ st.markdown("""
     }
     .media-container img { width: 100%; height: 100%; object-fit: contain; }
     
-    /* 텍스트 스타일: 기본 블랙, 강조 레드 */
     .eng-text-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 10px; }
     .char-normal { color: #000000; font-size: 1.6rem; font-weight: 500; }
     .char-accent { color: #E53935; font-size: 1.9rem; font-weight: 800; text-decoration: underline; }
     
     .sound-text { color: #666; font-size: 1.1rem; margin-bottom: 10px; font-style: italic; }
-    .mean-box { padding: 15px; background-color: #f8f9fa; border-radius: 15px; border: 1px solid #eee; }
+    .mean-box { padding: 15px; background-color: #f8f9fa; border-radius: 15px; border: 1px solid #eee; margin-bottom: 15px; }
     .mean-text { color: #222; font-size: 1.5rem; font-weight: bold; }
     .status-info { font-size: 1.1rem; color: #E53935; font-weight: bold; margin-bottom: 15px; }
     
-    /* 메인 버튼 레드 */
     .stButton>button { 
         width: 100%; height: 4.5rem; border-radius: 15px; font-weight: bold; font-size: 1.3rem !important;
         background-color: #E53935 !important; color: white !important; border: none;
+        margin-top: auto; /* 버튼을 아래쪽으로 밀어냄 */
     }
     .hidden-content { display: none !important; }
     </style>
     """, unsafe_allow_html=True)
 
 def get_giphy_url(keyword):
-    """GIPHY API 실시간 검색 (에러 방지 로직 포함)"""
     try:
-        # 검색어 뒤에 'movie'를 붙이면 더 적절한 장면이 나옵니다.
         url = f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API_KEY}&q={keyword}+movie&limit=1&rating=g"
         response = requests.get(url, timeout=5).json()
         if 'data' in response and len(response['data']) > 0:
             return response['data'][0]['images']['original']['url']
         return "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueXF3eHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpx/3o7TKunv7I79U/giphy.gif"
-    except Exception as e:
+    except:
         return "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueXF3eHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpxeHpx/3o7TKunv7I79U/giphy.gif"
 
 def get_accented_html(text):
@@ -97,7 +108,7 @@ all_sentences = load_sentences()
 with st.sidebar:
     st.header("⚙️ 앱 설정")
     study_mode = st.radio("학습 대상", ["1단계: 숙어", "2단계: 패턴"])
-    st.session_state.drive_mode = st.toggle("🚗 운전 모드 (자동 넘김)", False)
+    st.session_state.drive_mode = st.toggle("🚗 운전 모드", False)
     target_cat = "숙어" if "숙어" in study_mode else "패턴"
     filtered_data = [s for s in all_sentences if s[0] == target_cat]
 
@@ -111,22 +122,19 @@ if filtered_data:
 
     st.markdown('<div class="study-card">', unsafe_allow_html=True)
     
-    # GIPHY 이미지 로드
     gif_url = get_giphy_url(eng)
     st.markdown(f'<div class="media-container"><img src="{gif_url}"></div>', unsafe_allow_html=True)
 
-    # 텍스트 영역
     st.markdown(f"""
         <div>
             <div id="display-eng" class="eng-text-container">{get_accented_html(eng)}</div>
             <div id="display-sound" class="sound-text">[{sound}]</div>
             <div class="mean-box"><div class="mean-text">{mean}</div></div>
-            <div id="status-box" class="status-info">쉐도잉 시작</div>
+            <div id="status-box" class="status-info">쉐도잉 대기 중</div>
         </div>
     """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    # TTS & 스크립트
+    # 쉐도잉 로직 및 TTS 스크립트
     is_drive = "true" if st.session_state.drive_mode else "false"
     clean_eng = eng.replace('"', '').replace("'", "")
     
@@ -177,3 +185,5 @@ if filtered_data:
     if st.button("다음 랜덤 장면 👉", type="primary"):
         st.session_state.current_idx = random.randint(0, len(filtered_data) - 1)
         st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
