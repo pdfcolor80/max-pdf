@@ -1,3 +1,102 @@
+숙어|get used to|겟 유즈드 투|이제 좀 적응됐어
+숙어|take a break|테이크 어 브레이크|잠깐 쉬다 가자
+숙어|look forward to|룩 포워드 투|진짜 기대하고 있어
+숙어|make up one's mind|메이크 업 원스 마인드|나 마음 정했어
+숙어|go over|고 오버|한번 쓱 훑어보자
+숙어|figure out|피규어 아웃|어떻게든 알아내다
+숙어|come up with|컴 업 위드|좋은 생각 좀 해봐
+숙어|get along with|겟 얼롱 위드|사람들이랑 잘 지내
+숙어|put off|풋 오프|나중으로 미루자
+숙어|look after|룩 애프터|내가 좀 봐줄게 (돌봐줄게)
+숙어|take care of|테이크 케어 오브|내가 알아서 처리할게
+숙어|run out of|런 아웃 오브|벌써 다 떨어졌어
+숙어|catch up with|캐치 업 위드|금방 따라갈게
+숙어|give up|기브 업|그냥 포기해
+숙어|keep in touch|킵 인 터치|나중에 연락하고 지내자
+숙어|hang out|행 아웃|친구들이랑 놀러 가다
+숙어|show up|쇼 업|갑자기 나타나다
+숙어|count on|카운트 온|나만 믿어봐
+숙어|fall asleep|폴 어슬립|나도 모르게 잠들었어
+숙어|make sure|메이크 슈어|꼭 확인해봐
+숙어|get back to|겟 백 투|나중에 다시 연락할게
+숙어|get rid of|겟 리드 오브|이거 그냥 갖다 버려
+숙어|go on|고 온|계속해봐 (말 끊지 말고)
+숙어|grow up|그로우 업|철 좀 들어라
+숙어|hang on|행 온|잠깐만 기다려봐
+숙어|hurry up|허리 업|빨리 좀 해
+숙어|keep up with|킵 업 위드|흐름 놓치지 마 (잘 따라와)
+숙어|let down|렛 다운|나 실망시키지 마
+숙어|look into|룩 인투|내가 좀 알아볼게
+숙어|make a mistake|메이크 어 미스테이크|실수 좀 할 수도 있지
+숙어|pay attention to|페이 어텐션 투|내 말 좀 잘 들어봐
+숙어|point out|포인트 아웃|콕 찝어서 말해봐
+숙어|put on|풋 온|이거 좀 입어봐 (써봐)
+숙어|rely on|릴라이 온|나만 믿고 따라와
+숙어|sign up|사인 업|나도 끼워줘 (등록할래)
+숙어|stay up|스테이 업|나 어제 밤샜어
+숙어|take part in|테이크 파트 인|너도 같이 하자 (참여해)
+숙어|think over|씽크 오버|잘 좀 생각해봐
+숙어|try on|트라이 온|한번 입어볼래?
+숙어|turn on|턴 온|이것 좀 켜봐
+숙어|turn off|턴 오프|불 좀 꺼줘
+숙어|wait for|웨이트 포|나 좀 기다려줘
+숙어|wake up|웨이크 업|이제 정신 좀 차려 (일어나)
+숙어|watch out|와치 아웃|조심해! (위험해)
+숙어|write down|라이트 다운|까먹지 말고 적어둬
+숙어|get lost|겟 로스트|길 잃어버렸어
+숙어|get ready|겟 레디|슬슬 준비하자
+숙어|get better|겟 베터|훨씬 좋아졌어
+숙어|get worse|겟 워스|상황이 더 안 좋아졌어
+숙어|get a job|겟 어 잡|취직했어
+숙어|have a good time|해브 어 굿 타임|잘 놀다 와
+숙어|take a look|테이크 어 룩|이것 좀 봐봐
+숙어|take a photo|테이크 어 포토|사진 한 장 찍어줘
+숙어|make sense|메이크 센스|이제 좀 이해가 되네
+숙어|look like|룩 라이크|너 누구 닮았어
+숙어|feel like|필 라이크|그냥 그러고 싶은 기분이야
+숙어|deal with|딜 위드|내가 알아서 해결할게
+숙어|depend on|디펜드 온|그건 그때그때 달라
+숙어|belong to|빌롱 투|이거 누구 거야?
+숙어|ask for|애스크 포|부탁 좀 들어줘
+숙어|believe in|빌리브 인|나는 너 믿어
+숙어|laugh at|래프 앳|비웃지 마
+숙어|listen to|리스너 투|내 말 좀 들어봐
+숙어|worry about|워리 어바웃|걱정하지 마
+숙어|agree with|어그리 위드|내 말이 그 말이야 (동의해)
+숙어|succeed in|석시드 인|결국 해냈어
+숙어|suffer from|서퍼 프롬|나 그것 때문에 고생 중이야
+숙어|be about to|비 어바웃 투|안 그래도 막 하려던 참이야
+숙어|be supposed to|비 서포즈드 투|원래 그러기로 되어 있어
+숙어|break up|브레이크 업|우리 헤어졌어
+숙어|bring about|브링 어바웃|결국 이렇게 됐네
+숙어|calm down|캄 다운|진정 좀 해봐
+숙어|cheer up|치어 업|기운 좀 내
+숙어|clean up|클린 업|싹 치워버려
+숙어|come across|컴 어크로스|길 가다 우연히 봤어
+숙어|cut down on|컷 다운 온|술 좀 줄여야겠어
+숙어|do one's best|두 원스 베스트|그냥 할 수 있는 만큼 해봐
+숙어|drop by|드롭 바이|심심하면 한번 들러
+숙어|end up|엔드 업|결국 그렇게 되더라
+숙어|fill out|필 아웃|이거 좀 작성해줘
+숙어|find out|파인드 아웃|드디어 알아냈어
+숙어|pick up|픽 업|데리러 갈게 (주워줘)
+숙어|set up|셋 업|준비 다 끝났어
+숙어|bring up|브링 업|그 얘기는 왜 꺼내?
+숙어|call off|콜 오프|결국 취소됐어
+숙어|check out|체크 아웃|저것 좀 봐봐 (멋지다)
+숙어|get over|겟 오버|이제 잊을 때 됐지
+숙어|hand in|핸드 인|이것 좀 내줘
+숙어|hold on|홀드 온|잠깐만 기다려
+숙어|keep on|킵 온|그냥 계속해봐
+숙어|look up to|룩 업 투|진짜 존경스러워
+숙어|make sure|메이크 슈어|까먹지 말고 꼭 확인해
+숙어|pass out|패스 아웃|나 어제 완전 필름 끊겼어
+숙어|put up with|풋 오프 위드|더 이상은 못 참아
+숙어|run into|런 인투|아까 우연히 만났어
+숙어|take off|테이크 오프|이만 가볼게 (옷 벗어)
+숙어|turn down|턴 다운|거절당했어 (소리 좀 줄여)
+숙어|work out|워크 아웃|일이 잘 풀렸어 (운동해)
+숙어|carry on|캐리 온|하던 대로 계속해
 패턴|I'm going to (work).|아임 고잉 투 (워크).|나는 (일하러) 가는 중이에요.
 패턴|I'm going to (sleep).|아임 고잉 투 (슬립).|나는 (자러) 가는 중이에요.
 패턴|I'm going to (eat).|아임 고잉 투 (이트).|나는 (먹으러) 가는 중이에요.

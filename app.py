@@ -2,78 +2,59 @@ import streamlit as st
 import os
 import random
 
-# 파일 경로 설정
+# 파일 및 이미지 경로 설정
 DATA_FILE = "sentences.txt"
+IMAGE_DIR = "images" 
 
-st.set_page_config(page_title="영어 패턴 1000", layout="centered")
+st.set_page_config(page_title="영어 이미지 연상 학습", layout="centered")
 
-# CSS: 정신없던 효과들을 제거하고 깔끔한 UI로 변경
+# --- CSS: 스마트폰 가독성 및 UI 최적화 ---
 st.markdown("""
     <style>
     .main { background-color: #fdfdfd; }
     .study-card {
         background-color: #ffffff;
-        padding: 40px 20px;
+        padding: 20px 15px;
         border-radius: 20px;
         text-align: center;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
-        min-height: 400px;
+        margin-bottom: 15px;
+        min-height: 500px;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         border: 1px solid #eee;
     }
     
-    /* 영어 텍스트 영역 */
-    .eng-text-container { 
+    .image-container {
+        width: 100%;
+        height: 200px; /* 스마트폰 높이 고려 */
+        background-color: #f9f9f9;
+        border-radius: 15px;
+        margin-bottom: 15px;
         display: flex;
-        flex-wrap: wrap;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        margin-bottom: 20px;
+        overflow: hidden;
     }
     
+    .eng-text-container { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
     .word-box { display: flex; align-items: baseline; }
-
-    /* 일반 글자 */
-    .char-normal {
-        color: #333;
-        font-size: 1.8rem;
-        font-weight: 500;
-    }
+    .char-normal { color: #333; font-size: 1.6rem; font-weight: 500; }
+    .char-accent { color: #E53935; font-size: 1.9rem; font-weight: 800; text-decoration: underline; }
     
-    /* 적당한 강조 (빨간색 화살표 제거, 대신 굵기만 조절) */
-    .char-accent {
-        color: #E53935;
-        font-size: 2.1rem;
-        font-weight: 800;
-        text-decoration: underline;
-    }
-
-    .sound-text { color: #666; font-size: 1.1rem; margin-top: 5px; font-style: italic; }
+    .sound-text { color: #666; font-size: 1rem; margin-bottom: 10px; font-style: italic; }
     .hidden-content { display: none !important; }
     
-    /* 한글 뜻 영역 */
-    .mean-box { 
-        margin-top: 30px;
-        padding: 15px;
-        border-top: 1px solid #f0f0f0;
-    }
-    .mean-text { color: #1a73e8; font-size: 1.7rem; font-weight: bold; }
+    .mean-box { margin-top: auto; padding: 15px; border-top: 1px solid #f0f0f0; background-color: #f8faff; border-radius: 15px; }
+    .mean-text { color: #1a73e8; font-size: 1.5rem; font-weight: bold; }
     
-    /* 하단 상태바 (심플하게) */
-    .status-info { 
-        margin-top: 20px;
-        font-size: 1rem;
-        color: #777;
-        font-weight: 500;
-    }
+    .status-info { margin-top: 15px; font-size: 1rem; color: #d32f2f; font-weight: bold; }
     
+    /* 스마트폰 버튼 크게 */
     .stButton>button { 
-        width: 100%; height: 4rem; border-radius: 12px; font-weight: bold; 
-        background-color: #333; color: white; border: none;
+        width: 100%; height: 4.5rem; border-radius: 12px; font-weight: bold; font-size: 1.2rem !important;
+        background-color: #333 !important; color: white !important; 
     }
     </style>
     """, unsafe_allow_html=True)
@@ -99,30 +80,40 @@ def load_sentences():
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return [line.strip().split("|") for line in f if len(line.strip().split("|")) >= 4]
 
-sentences = load_sentences()
-
-if "current_idx" not in st.session_state:
-    if sentences: st.session_state.current_idx = random.randint(0, len(sentences) - 1)
-if "drive_mode" not in st.session_state: st.session_state.drive_mode = False
+all_sentences = load_sentences()
 
 with st.sidebar:
-    st.header("설정")
-    st.session_state.drive_mode = st.toggle("🚗 운전 모드 (자동 넘기기)", value=st.session_state.drive_mode)
+    st.header("🎯 학습 메뉴")
+    study_mode = st.radio("학습 단계", ["1단계: 핵심 숙어 마스터", "2단계: 패턴 영어 완성"])
+    st.session_state.drive_mode = st.toggle("🚗 운전 모드", value=st.session_state.get('drive_mode', False))
+    target_cat = "숙어" if "1단계" in study_mode else "패턴"
+    filtered_data = [s for s in all_sentences if s[0] == target_cat]
 
-if sentences:
+if filtered_data:
+    if "current_idx" not in st.session_state or st.session_state.get('last_cat') != target_cat:
+        st.session_state.current_idx = random.randint(0, len(filtered_data) - 1)
+        st.session_state.last_cat = target_cat
+
     idx = st.session_state.current_idx
-    kind, eng, sound, mean = sentences[idx]
-    accented_html = get_accented_html(eng)
+    _, eng, sound, mean = filtered_data[idx]
     
+    # 이미지 표시 로직
+    img_filename = eng.lower().replace(" ", "_").replace("'", "") + ".jpg"
+    img_path = os.path.join(IMAGE_DIR, img_filename)
+    
+    st.markdown('<div class="study-card">', unsafe_allow_html=True)
+    
+    # 🖼️ 이미지 영역
+    if os.path.exists(img_path):
+        st.image(img_path, use_container_width=True)
+    else:
+        st.markdown(f'<div class="image-container" style="color:#ccc;">이미지 준비 중<br>({img_filename})</div>', unsafe_allow_html=True)
+
     st.markdown(f"""
-    <div class="study-card">
-        <div style="color:#999; font-size:0.8rem; margin-bottom:10px;">{kind}</div>
-        <div id="display-eng" class="eng-text-container">{accented_html}</div>
+        <div id="display-eng" class="eng-text-container">{get_accented_html(eng)}</div>
         <div id="display-sound" class="sound-text">[{sound}]</div>
-        <div class="mean-box">
-            <div class="mean-text">{mean}</div>
-        </div>
-        <div id="status-box" class="status-info">진행 중...</div>
+        <div class="mean-box"><div class="mean-text">{mean}</div></div>
+        <div id="status-box" class="status-info">시작하려면 아래 버튼 클릭</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -136,6 +127,9 @@ if sentences:
             const soundEl = window.parent.document.getElementById('display-sound');
             const statusEl = window.parent.document.getElementById('status-box');
             
+            engEl.classList.remove('hidden-content');
+            soundEl.classList.remove('hidden-content');
+            
             window.speechSynthesis.cancel();
             let count = 0;
             const isDrive = {is_drive};
@@ -144,18 +138,17 @@ if sentences:
                 let msg = new SpeechSynthesisUtterance("{clean_eng}");
                 msg.lang = 'en-US';
                 
-                // 1~5회: 0.5배속 | 6~10회: 0.8배속 | 11~13회: 0.8배속 + 숨김
                 if (count < 5) {{
                     msg.rate = 0.5;
-                    statusEl.innerText = "Step 1: 연음 파악 중 (" + (count+1) + "/13)";
+                    statusEl.innerText = "Step 1: 느리게 (" + (count+1) + "/13)";
                 }} else if (count < 10) {{
                     msg.rate = 0.8;
-                    statusEl.innerText = "Step 2: 정상 속도 훈련 (" + (count+1) + "/13)";
+                    statusEl.innerText = "Step 2: 정상 반복 (" + (count+1) + "/13)";
                 }} else {{
                     msg.rate = 0.8;
                     engEl.classList.add('hidden-content');
                     soundEl.classList.add('hidden-content');
-                    statusEl.innerText = "Step 3: 쉐도잉 완성 (" + (count+1) + "/13)";
+                    statusEl.innerText = "Step 3: 가리고 말하기 (" + (count+1) + "/13)";
                 }}
 
                 msg.onend = function() {{
@@ -163,20 +156,34 @@ if sentences:
                     if (count < 13) {{
                         setTimeout(speak, 1500);
                     }} else {{
-                        statusEl.innerText = "학습 완료";
-                        if(isDrive) setTimeout(() => {{ 
-                            window.parent.document.querySelector('button[kind="primary"]').click(); 
-                        }}, 2000);
+                        statusEl.innerText = isDrive ? "🚗 다음 문장 이동..." : "✅ 학습 완료";
+                        if(isDrive) {{
+                            setTimeout(() => {{
+                                const buttons = window.parent.document.querySelectorAll('button');
+                                for (let btn of buttons) {{
+                                    if (btn.innerText.includes("다음")) {{
+                                        btn.click();
+                                        break;
+                                    }}
+                                }
+                            }}, 3000);
+                        }}
                     }}
                 }};
                 window.speechSynthesis.speak(msg);
             }}
             speak();
         }}
-        setTimeout(start, 500);
+        
+        // 버튼 클릭 감지
+        window.parent.document.querySelectorAll('button').forEach(btn => {{
+            if (btn.innerText.includes("다음")) {{
+                btn.onclick = () => {{ setTimeout(start, 500); }};
+            }
+        }});
         </script>
     """, height=0)
 
-    if st.button("다음 랜덤 문장 👉", type="primary"):
-        st.session_state.current_idx = random.randint(0, len(sentences) - 1)
+    if st.button("다음 랜덤 문장 👉 (학습 시작)", type="primary"):
+        st.session_state.current_idx = random.randint(0, len(filtered_data) - 1)
         st.rerun()
