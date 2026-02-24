@@ -59,12 +59,14 @@ def load_data():
 
 all_data = load_data()
 
+# --- 퀴즈 초기화 로직 ---
 def init_quiz(cat):
     quiz_pool = [r for r in all_data if r[0] not in ["패턴", "숙어", "단어"]] if cat == "💡 전체보기" else [r for r in all_data if r[0] == cat]
     if not quiz_pool: quiz_pool = [r for r in all_data if r[0] not in ["패턴", "숙어", "단어"]]
     
     st.session_state.quiz_data = random.choice(quiz_pool)
     correct_eng = st.session_state.quiz_data[1]
+    
     distractor_pool = [r for r in all_data if r[0] == "단어" and r[1] != correct_eng]
     if len(distractor_pool) < 5: distractor_pool = [r for r in all_data if r[1] != correct_eng]
     
@@ -74,32 +76,65 @@ def init_quiz(cat):
     st.session_state.wrong_count = 0 
     st.session_state.force_study = False
 
-# --- 다이얼로그: 차수별 확장 멘트 ---
+# --- 세션 초기화 ---
+if "phase" not in st.session_state:
+    st.session_state.phase = "forest"
+
+categories = sorted(list(set([r[0] for r in all_data if r[0] not in ["패턴", "숙어", "단어"]])))
+categories = ["💡 전체보기"] + categories
+selected_cat = st.selectbox("", categories, label_visibility="collapsed")
+
+if "quiz_data" not in st.session_state or st.session_state.get("last_cat") != selected_cat:
+    st.session_state.last_cat = selected_cat
+    init_quiz(selected_cat)
+
+# --- 사운드 함수 ---
+def play_sound(sound_type):
+    if sound_type == "success":
+        js_code = """
+        <script>
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        function noise(dur) {
+            const b = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate);
+            const d = b.getChannelData(0);
+            for (let i = 0; i < b.length; i++) { d[i] = Math.random() * 2 - 1; }
+            const s = ctx.createBufferSource(); s.buffer = b;
+            const g = ctx.createGain(); g.gain.setValueAtTime(0.05, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
+            s.connect(g); g.connect(ctx.destination); s.start();
+        }
+        for(let i=0; i<15; i++) { setTimeout(() => noise(0.2), i * 60); }
+        </script>
+        """
+    else:
+        js_code = "<script>const ctx=new(window.AudioContext||window.webkitAudioContext)();function b(f,d,s){const o=ctx.createOscillator();const g=ctx.createGain();o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(0.05,ctx.currentTime);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+s);o.stop(ctx.currentTime+s+d);}b(880,0.1,0);b(1100,0.2,0.15);</script>"
+    st.components.v1.html(js_code, height=0)
+
+# --- 다이얼로그: 차수별 멘트 폭탄 ---
 @st.dialog("😈 약올리기 알림")
 def show_wrong_dialog(item):
     st.session_state.wrong_count += 1
     count = st.session_state.wrong_count
     
-    # 1차 오답 멘트 (가벼운 비웃음)
     insults_1 = [
-        "풉! 1번 틀림 😏 보기를 3개로 줄여줄게.", "오답 레이더 발동! 🤣 3개 중엔 고를 수 있겠지?",
-        "손가락이 미끄러진 거죠? 그럴 수 있어... 딱 한 번만.", "지금 졸고 계신 건 아니죠? 🥱",
-        "실력인가요, 실수인가요? 1차 경고!", "안타깝네요. 뇌가 잠시 로그아웃 하셨나봐요?",
-        "괜찮아요, 아직은 그럴 수 있어요. (비웃음)", "어허, 집중 안 하십니까? 🧐"
+        "풉! 1번 틀림 😏 보기를 3개로 줄여줄게.", "오답 레이더 발동! 🤣", "지금 졸고 계신 건 아니죠? 🥱",
+        "손가락이 미끄러진 거죠? 그럴 수 있어... 딱 한 번만.", "실력인가요, 실수인가요? 1차 경고!",
+        "안타깝네요. 뇌가 잠시 로그아웃 하셨나봐요?", "괜찮아요, 아직은 그럴 수 있어요. (비웃음)",
+        "어허, 집중 안 하십니까? 🧐", "틀리는 것도 재능이라면 당신은 천재!", "삐빅- 오답입니다. 삐빅-"
     ]
-    # 2차 오답 멘트 (지능 의심)
     insults_2 = [
         "진심이야? 🤡 반반 확률인데 틀리겠어?", "비행기 티켓 취소할까요? 국제 미아 확정!",
         "와... 이건 지능 문제인데? 🤣 이제 그냥 찍어봐!", "영어 말고 몸짓 발짓을 연마하시는 게 어떨까요? 🤸",
-        "거의 정답을 떠먹여 주는데도 뱉어버리네... 대단하다!", "두 번 틀리는 건 과학입니다. 당신의 지능지수... 여기까지인가요?",
-        "이 정도면 일부러 틀리는 수준인데? 🤨", "와우, 창의적으로 오답을 고르시네요!"
+        "거의 정답을 떠먹여 주는데도 뱉어버리네... 대단하다!", "두 번 틀리는 건 과학입니다.  IQ 테스트 해볼까요?",
+        "이 정도면 일부러 틀리는 수준인데? 🤨", "와우, 창의적으로 오답을 고르시네요!",
+        "뇌 세포들이 단체로 파업 중인가요? 🧠🚫", "포기하면 편해요. 하지만 전 계속 괴롭힐 겁니다."
     ]
-    # 3차 오답 멘트 (포기 권고)
     insults_3 = [
         "공부 접으세요 그냥 ⛔", "자존심 상해도 정답은 봐야지? 강제 암기 모드 당첨!",
         "벽이랑 대화하는 게 빠를지도... 😏 정답이나 보세요.", "영어 말고 파파고랑 베프 하세요 🤡",
-        "오늘 공부는 여기까지... 뇌가 파업을 선언했습니다. 🧠🚫", "자, 정답 들어갑니다. 입이라도 벌리세요!",
-        "인내심 테스트 중인가요? 제가 졌습니다. 🏳️", "그냥 한국어로만 사시는 걸 추천합니다. 🇰🇷"
+        "오늘 공부는 여기까지... 뇌가 폭발했습니다. 🧠💥", "자, 정답 들어갑니다. 입이라도 벌리세요!",
+        "인내심 테스트 중인가요? 제가 졌습니다. 🏳️", "그냥 한국어로만 사시는 걸 추천합니다. 🇰🇷",
+        "이건 거의 예술적인 오답 행진이네요. 박수를 드립니다. 👏", "다음 생에는 원어민으로 태어나시길 기도할게요."
     ]
 
     msg = random.choice(insults_1 if count == 1 else insults_2 if count == 2 else insults_3)
@@ -117,113 +152,68 @@ def show_wrong_dialog(item):
     else:
         st.session_state.force_study = True
     
-    st.components.v1.html("<script>const ctx=new(window.AudioContext||window.webkitAudioContext)();function b(f,d,s){const o=ctx.createOscillator();const g=ctx.createGain();o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(0.05,ctx.currentTime);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+s);o.stop(ctx.currentTime+s+d);}b(880,0.1,0);b(1100,0.2,0.15);</script>", height=0)
+    play_sound("fail")
 
     if st.button("다시 도전" if reduce_to > 0 else "강제 암기하러 가기 (굴욕)", use_container_width=True):
         if reduce_to == 0: st.session_state.phase = "solved"
         st.rerun()
 
-# --- 다이얼로그: 강제 암기 모드 ---
 @st.dialog("🔥 강제 암기: 10회 반복")
 def show_force_study_dialog(item):
-    st.markdown("""
-        <div class="punishment-box">
-            <h3 style="color:#D32F2F; margin:0;">🚨 비상! 지능 저하 감지</h3>
-            <p>이 문장은 당신 머리에 박힐 때까지 못 나갑니다.</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("""<div class="punishment-box"><h3 style="color:#D32F2F; margin:0;">🚨 비상! 지능 저하 감지</h3><p>이 문장은 당신 머리에 박힐 때까지 못 나갑니다.</p></div>""", unsafe_allow_html=True)
     st.markdown(f"<h2 style='text-align:center; margin-top:15px;'>{item[1]}</h2>", unsafe_allow_html=True)
-    st.markdown(f"<h4 style='text-align:center; color:#555;'>{item[3]}</h4>", unsafe_allow_html=True)
-    st.write("---")
-    st.write("🔊 지금부터 10번 연속 재생됩니다. 입으로 따라 하세요!")
-
+    st.write("🔊 10번 연속 재생됩니다. 입으로 따라 하세요!")
     clean_text = item[1].replace("'", "")
-    st.components.v1.html(f"""
-        <script>
-        window.speechSynthesis.cancel();
-        let c = 0;
-        function p() {{
-            let u = new SpeechSynthesisUtterance('{clean_text}');
-            u.lang = 'en-US'; u.rate = 0.8;
-            u.onend = () => {{ c++; if(c < 10) setTimeout(p, 600); }};
-            window.speechSynthesis.speak(u);
-        }}
-        p();
-        </script>
-    """, height=0)
-
+    st.components.v1.html(f"<script>window.speechSynthesis.cancel();let c=0;function p(){{let u=new SpeechSynthesisUtterance('{clean_text}');u.lang='en-US';u.rate=0.8;u.onend=()=>{ { 'c++; if(c<10) setTimeout(p, 600);' } };window.speechSynthesis.speak(u);}}p();</script>", height=0)
     if st.button("10번 다 따라했습니다 (양심선언)", use_container_width=True):
         init_quiz(selected_cat)
         st.rerun()
 
-@st.dialog("📚 여행 필수 단어 복습")
+@st.dialog("📚 단어 복습")
 def show_review_dialog():
     review_pool = [r for r in all_data if r[0] == "단어"]
     w = random.choice(review_pool) if review_pool else all_data[0]
     st.markdown(f"<h3 style='text-align:center; color:#E53935;'>[{w[1]}]</h3>", unsafe_allow_html=True)
     st.markdown(f"<h4 style='text-align:center;'>뜻: {w[3]}</h4>", unsafe_allow_html=True)
-    st.info(f"**실전 상황:** {w[4]}")
     if st.button("완벽히 외웠음! 다음 문제 👉", use_container_width=True):
         init_quiz(selected_cat)
         st.rerun()
 
-# --- 메인 로직 ---
-if "phase" not in st.session_state: st.session_state.phase = "forest"
-
-categories = sorted(list(set([r[0] for r in all_data if r[0] not in ["패턴", "숙어", "단어"]])))
-categories = ["💡 전체보기"] + categories
-selected_cat = st.selectbox("", categories, label_visibility="collapsed")
-
-if "quiz_data" not in st.session_state or st.session_state.get("last_cat") != selected_cat:
-    st.session_state.last_cat = selected_cat
-    init_quiz(selected_cat)
-
+# --- 화면 출력 ---
 curr = st.session_state.quiz_data
 cat_name, target_eng, target_sound, target_mean, target_context = curr[:5]
 
 st.markdown(f'<div class="context-box"><b>[{cat_name}]</b><br>{target_context}<br>({target_mean})</div>', unsafe_allow_html=True)
 
 if st.session_state.phase == "forest":
-    for i, item in enumerate(st.session_state.current_options):
-        if st.button(f"{item[1]} / {item[2]}", key=f"ans_{i}"):
-            if item[1] == target_eng:
-                st.session_state.phase = "solved"
-                st.rerun()
-            else: show_wrong_dialog(item)
+    if "current_options" in st.session_state:
+        for i, item in enumerate(st.session_state.current_options):
+            if st.button(f"{item[1]} / {item[2]}", key=f"ans_{i}"):
+                if item[1] == target_eng:
+                    st.session_state.phase = "solved"
+                    st.rerun()
+                else: show_wrong_dialog(item)
 
 elif st.session_state.phase == "solved":
     if not st.session_state.get("force_study"):
-        # 확장된 칭찬 멘트
         success_msgs = [
-            "천재신가요? 한 방에 맞히다니! 🎉", "오~ 좀 치시는데요? 멋져요! ✨",
-            "원어민 빙의 완료! 훌륭합니다. 👍", "이 정도면 내일 당장 비행기 타도 되겠어요! ✈️",
-            "완벽합니다! 뇌 세포들이 춤을 추네요! 💃", "굿잡! 칭찬 스티커 하나 드립니다. ⭐",
-            "영어가 술술~ 폼 미쳤다! 🔥", "대단해요! 공부한 보람이 있네요. 😎",
-            "정답 행렬! 멈추지 마세요! 🚀", "와우! 당신의 뇌는 섹시하군요? 🧠✨"
+            "천재신가요? 🎉", "폼 미쳤다! 🔥", "원어민 빙의 완료! 👍", "뇌가 아주 섹시하시군요? 🧠✨",
+            "한 방에 맞히다니, 대박! ⭐", "오~ 좀 치시는데요? 폼 살아있네!", "완벽합니다! 칭찬 스티커 100개!",
+            "굿잡! 원어민도 울고 갈 실력이에요.", "영어 마스터가 멀지 않았습니다! 🚀", "와우! 당신의 기억력에 치얼스! 🥂"
         ]
         if random.choice([True, False]): st.balloons()
         else: st.snow()
         st.markdown(f"<h3 style='text-align:center; color:#2E7D32;'>{random.choice(success_msgs)}</h3>", unsafe_allow_html=True)
+        play_sound("success")
     else:
         st.markdown("<h3 style='text-align:center; color:#D32F2F;'>겨우 맞혔네요... ㅉㅉ 🤡</h3>", unsafe_allow_html=True)
 
-    st.markdown(f"""
-        <div style="text-align:center;">
-            <h2 style="color:#007BFF; margin-top:10px;">{target_eng}</h2>
-            <p style="font-size:1.4rem; color:#E53935; font-weight:700;">{target_sound}</p>
-            <h3>{target_mean}</h3>
-            <hr>
-            <p style='font-weight:800; color:#333;'>🔊 정답 확인 (5회 반복)</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
+    st.markdown(f"<div style='text-align:center;'><h2 style='color:#007BFF; margin-top:10px;'>{target_eng}</h2><p style='font-size:1.4rem; color:#E53935; font-weight:700;'>{target_sound}</p><h3>{target_mean}</h3><hr><p style='font-weight:800; color:#333;'>🔊 5회 반복 쉐도잉</p></div>", unsafe_allow_html=True)
     clean_target = target_eng.replace("'", "")
     st.components.v1.html(f"<script>window.speechSynthesis.cancel();let l=0;function p(){{let u=new SpeechSynthesisUtterance('{clean_target}');u.lang='en-US';u.rate=0.85;u.onend=()=>{{l++;if(l<5)setTimeout(p,700);}};window.speechSynthesis.speak(u);}}p();</script>", height=0)
     
     st.markdown('<div class="next-area">', unsafe_allow_html=True)
     if st.button("다음 문제 👉", key="next"):
-        if st.session_state.get("force_study"):
-            show_force_study_dialog(st.session_state.quiz_data)
-        else:
-            show_review_dialog()
+        if st.session_state.get("force_study"): show_force_study_dialog(st.session_state.quiz_data)
+        else: show_review_dialog()
     st.markdown('</div>', unsafe_allow_html=True)
